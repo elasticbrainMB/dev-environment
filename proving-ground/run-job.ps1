@@ -52,7 +52,14 @@ function Save-State {
 
 function Send-Discord {
   param([string]$Channel, [string]$Message)
+  # Under $ErrorActionPreference = 'Stop', a native command's stderr becomes
+  # a terminating error the instant it's touched by ANY '2>' redirect (even
+  # 2>$null) - relaxing EAP for just this call is the only pattern that both
+  # avoids the throw and still lets the exit code/output be inspected.
+  $prevEap = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
   & docker exec $container openclaw message send --channel discord --target $Channel --message $Message --json 2>&1 | Out-Null
+  $ErrorActionPreference = $prevEap
   if ($LASTEXITCODE -ne 0) { Write-Log "WARN: discord post to $Channel failed (exit $LASTEXITCODE)" }
 }
 
@@ -78,15 +85,24 @@ $hostOutputPath = Join-Path $root $outputRel
 
 Write-Log "START attempt $attempt/$hardStopAt using $model"
 
+# Same reason as Send-Discord above: relax EAP around every docker call in
+# this block, since the container being unreachable (the exact scenario this
+# whole job exists to survive) is what makes these throw.
+$prevEap = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
 & docker exec $container sh -lc "mkdir -p $containerWsDir" 2>&1 | Out-Null
-Get-Content -Path $inputPath -Raw -Encoding utf8 | & docker exec -i $container sh -lc "cat > $containerWsDir/input.txt"
+Get-Content -Path $inputPath -Raw -Encoding utf8 | & docker exec -i $container sh -lc "cat > $containerWsDir/input.txt" 2>&1 | Out-Null
+$ErrorActionPreference = $prevEap
 
 $message = "This is an automated proving-ground test run (attempt $attempt of $hardStopAt). " +
   "Read the file proving-ground/input.txt in your workspace. " +
   "Write a one-line summary of it, no more than $($maxWords - 3) words, ending with the exact literal token $emitToken, " +
   "to a new file at proving-ground/$outputRel in your workspace. Do nothing else: no other files, no other tools, no reply needed."
 
+$prevEap = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
 $agentRaw = & docker exec $container openclaw agent --agent $agentId --model $model --message $message --json 2>&1
+$ErrorActionPreference = $prevEap
 $agentExit = $LASTEXITCODE
 
 $costUsd = 0.0
@@ -104,7 +120,10 @@ if ($agentExit -eq 0) {
   Write-Log ($agentRaw -join "`n")
 }
 
+$prevEap = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
 & docker exec $container sh -lc "cat $containerWsDir/$outputRel 2>/dev/null" 2>$null | Set-Content -Path $hostOutputPath -Encoding utf8 -NoNewline
+$ErrorActionPreference = $prevEap
 
 $verifyOutput = & pwsh -NoProfile -File $verifyScript -OutputPath $hostOutputPath -RequiredToken $state.requiredToken -MaxWords $maxWords 2>&1
 $verifyExit = $LASTEXITCODE

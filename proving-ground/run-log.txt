@@ -15,3 +15,12 @@
 2026-09-11 06:30:45  SKIP: job is stopped (since 09/11/2026 06:30:03) - no restart on scheduled tick.
 2026-09-11 09:33:40  START attempt 3/5 using openrouter/~anthropic/claude-sonnet-latest
 2026-09-11 09:33:57  FAIL attempt 3 via openrouter/~anthropic/claude-sonnet-latest (no progress) - SUMMARY: 4 checks run. Failures: 1.
+2026-09-11 11:14:43  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-11 11:14:43  FATAL: unhandled error - Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
+2026-09-11 11:16:02  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-11 11:16:02  FATAL: unhandled error - Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
+2026-09-11 11:19:46  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-11 11:19:46  WARN: agent invocation failed, exit 1
+2026-09-11 11:19:46  Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
+2026-09-11 11:19:47  FAIL attempt 1 via ollama/qwen3.5:9b-q8_0 (no progress) - SUMMARY: 4 checks run. Failures: 4.
+2026-09-11 11:19:47  WARN: discord post to channel:1529976260007301242 failed (exit 1)
