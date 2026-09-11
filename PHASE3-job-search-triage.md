@@ -209,6 +209,46 @@ The one thing that shouldn't move inside the agent regardless: the check
 script. Whatever else changes, the thing that grades the work stays outside
 the thing that does it.
 
+### Two rules from 2026-09-11, learned the hard way
+
+Both came out of a dry run that was only done because the overnight test was
+about to depend on an untested path. Both apply to anything built on this
+machine from here.
+
+**1. An alert path must not depend on the thing it reports on.**
+`run-job.ps1` posts to Discord by running a command *inside* the `openclaw`
+container. So when the container is down — the exact moment an alert matters
+most — the job cannot tell anyone. It logs a warning to a file nobody is
+reading at 01:00 and that is the end of it. The only alert that survived the
+outage was the staleness check, which posts over infra-watch's host-side
+webhook and never touches Docker.
+
+For Phase 3, the job's own alerts go over the host-side webhook, not through
+the container. Tonight's proving-ground run deliberately keeps the broken
+version because it produces cleaner evidence of exactly this, but nothing real
+should inherit it. Generalized: **before trusting any alert, ask what it
+depends on, and whether that thing is still working in the scenario the alert
+exists to report.**
+
+**2. This machine runs Windows PowerShell 5.1, and that changes how scripts
+must be written.**
+Under `$ErrorActionPreference = 'Stop'`, *any* stderr redirect on an external
+command — `2>&1` and `2>$null` alike — turns that command's error output into
+a script-killing error. So the moment `docker` became unreachable,
+`run-job.ps1` died before it could record the failure or save its state. The
+counter never moved, the stop rule never triggered, and the crash looked like
+silence.
+
+This is not specific to Docker. Every script on this box that calls an
+external command under `'Stop'` has the same trap. The working pattern is to
+relax `$ErrorActionPreference` around each external call and check the exit
+code explicitly. Assume nothing about which line is at fault — the first
+diagnosis of this bug was wrong, and only an experiment settled it.
+
+The deeper habit worth keeping: **a failure path that has never been run is
+not a failure path.** The passing case had been exercised eight times; the
+container-down case had never been run once, and it was broken.
+
 ## Gates before any building starts
 
 1. Phase 2's close-out is done — spend cap live and verified, timer proven,
