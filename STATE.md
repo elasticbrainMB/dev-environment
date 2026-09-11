@@ -10,11 +10,11 @@ _Status: **Active**. Graduated from Planned 2026-09-10._
 | | |
 |---|---|
 | Folder | `C:\automation\dev-environment` |
-| Repo | Not created yet — Phase 0 |
+| Repo | `github.com/elasticbrainMB/dev-environment`, `main` |
 | claude.ai project | Not created — open question 5 in the plan |
 | Roadmap pointer | `C:\automation\roadmap\projects\dev-environment.md` |
 | Plan | `PLAN-dev-environment-v1.md`, this folder |
-| History | `planning\dev-environment.md` v0.5 in the roadmap repo — to be moved here, per the lifecycle rule that nothing sits in two states at once |
+| History | `history\dev-environment-planning-v0.5.md`, this repo — moved from the roadmap repo 2026-09-11; removed there in the same piece of work |
 
 ## What this is
 
@@ -31,8 +31,8 @@ gets migrated.
 
 | Phase | State |
 |---|---|
-| **0 — Graduate the project** | In progress. Plan and this file written 2026-09-10; roadmap pointer and index updated. GitHub remote now known: `github.com/elasticbrainMB/dev-environment`, not yet initialized locally. Remaining: git init, remote, first push, move the old planning doc here |
-| **1 — OpenClaw 2.0 config reset** | Nearly done. Confirmed fact: host `openclaw.json` is disconnected from the live container config (named Docker volume, not a bind mount) — all live changes go through the CLI. `automation` agent identity live and correct. Secrets: `OLLAMA_API_KEY` moved to a `SecretRef`, hot-reloaded clean — **one verification still open** before calling this closed: confirm the live config field actually holds a reference, not the raw key, since the audit still flags it and that explanation hasn't been checked. See `PHASE1-VERIFY-and-git-setup.md` |
+| **0 — Graduate the project** | **Done, 2026-09-11.** Repo created and pushed: `github.com/elasticbrainMB/dev-environment`, `main`. Push needed a `git push`-scoped permission rule (harness-level, separate from Matt's go-ahead) — added to `.claude/settings.local.json`, scoped to this project, force-push variants still denied. The superseded v0.5 planning doc is moved: `history\dev-environment-planning-v0.5.md` in this repo, removed from `roadmap\planning\dev-environment.md` in the same piece of work (roadmap's `STATE.md` and project pointer already graduated it to Active, committed together with the removal). claude.ai project still open — question 5 in the plan |
+| **1 — OpenClaw 2.0 config reset** | **Done.** Host `openclaw.json` confirmed disconnected from the live container config (named Docker volume, not a bind mount) — all live changes go through the CLI. `automation` agent identity live and correct. `OLLAMA_API_KEY` confirmed as a real `SecretRef` object (`{source: "env", provider: "env", id: ...}`), not the raw key — verified directly, not just claimed |
 | **2 — The proving ground** | Not started. A throwaway recurring job, run to a pass and then broken on purpose to fire the stop rule |
 | **3 — First real project** | Deferred by decision, chosen on Phase 2 evidence. Leaning: newsletter health reporting |
 
@@ -48,6 +48,7 @@ gets migrated.
 | 2026-09-10 | **Stop rule settled at five** consecutive no-progress attempts, and a stopped job does not restart on its next scheduled tick |
 | 2026-09-11 | **Front door channel: Discord**, not Telegram — it was already live and wired to approvals when Claude Code checked. Telegram stays configured but off. Resolves the plan's open question 4 |
 | 2026-09-11 | **Secrets migration scope: only what the audit flagged** (`OLLAMA_API_KEY`). The other three plaintext secrets in `.env` stay as-is |
+| 2026-09-11 | **Claude Code may push to git in this project without asking each time**, once a permission rule scoped to `git push` (not broader) is in place. Deliberate call, not a default — Claude Code's harness blocks pushes by default for the same reason the OpenClaw approval gate exists: a push is visible and hard to undo. Revisit if this project ever needs a *narrower* rule than "any push in this folder" (e.g. once Phase 2 automations exist, whether they should push too, or only Matt/interactive Claude Code sessions) |
 
 ## Open, blocking nothing yet
 
