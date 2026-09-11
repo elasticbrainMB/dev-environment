@@ -111,14 +111,15 @@ is the one thing to carry across, and it is the only thing.
 ## 5. Guardrails
 
 Four of these already exist and are inherited. Two are new because the
-runner changed.
+runner changed, and one more was added 2026-09-11.
 
 | Guardrail | Status |
 |---|---|
 | **Disk is the source of truth** | Inherited, unchanged. Every job writes its result to a file in its project folder *before* it posts anywhere. OpenClaw's own session store, Telegram, Discord and Notion are all mirrors |
 | **A model never grades its own output** | Inherited, unchanged. The `check` is a script, or a separate model call with no shared history |
 | **Scope** | Inherited. Each job declares the exact paths it may write to; a write outside is a hard stop |
-| **Budget** | Inherited in shape — dollars and wall-clock per job — but the enforcement point moves from `invoke-model.ps1` into OpenClaw. **[VERIFY — Phase 1]** |
+| **Budget** | **Resolved 2026-09-11.** The enforcement point is neither `invoke-model.ps1` nor OpenClaw: it is **OpenRouter**, via a per-key weekly ceiling (`limit: 5`, `limit_reset: weekly`) that rejects requests before they reach a model. Wall-clock per job stays with the job. See §10b |
+| **No credential in a model's context** | **New, 2026-09-11, at Matt's instruction.** No key, token or secret URL is ever pasted into a Cowork or Claude Code prompt, written where a model reads it back, or printed by a command whose output a model sees. The boundary is the model's context and the session transcript — a transcript persists, syncs, and is read back by later sessions. Matt's own screen and shell are fine. In practice: Matt runs anything holding a secret, in his own window, behind a secure prompt; Claude Code writes the scripts, which contain none. Applies to the Google Apps Script webhook URL in Phase 3 as much as to API keys — that URL is a write credential for the Job Tracker |
 | **The approval gate** | **New problem. See §6** |
 | **The stop rule** | **New answer. See §7** |
 
@@ -554,24 +555,132 @@ foundation.
 
 ## 10. Open questions
 
-1. **Does OpenClaw enforce budgets and retries, or must the job's own check
-   script?** Phase 1 answers it. §7 is written to work either way, but where
-   the counting lives changes what a job spec has to carry.
-2. **Does Matt's beehiiv plan include API access?** Gates the leading Phase 3
-   candidate. Not answerable from the public docs.
-3. **What the two work windows actually are.** Proposed: overnight 23:00–06:00
-   CT for heavy local model work while the GPU is free, and 09:00–16:00 CT for
-   lighter collection and checks, when a Telegram approval can be answered
-   within an hour or two. Includes a scheduled model warm-up before the
-   overnight window. **Not confirmed with Matt.**
+1. ~~Does OpenClaw enforce budgets and retries, or must the job's own check
+   script?~~ **Resolved 2026-09-11 — neither, and the third answer is better
+   than both.** Phase 2 showed OpenClaw does not enforce a spend ceiling, which
+   left the job's own check script as the only option this question
+   anticipated. It isn't: **OpenRouter enforces the ceiling itself**, on a
+   dedicated API key (`limit: 5`, `limit_reset: weekly`), rejecting requests
+   before they reach a model so a blocked request costs nothing. That is
+   strictly stronger than a check we write, because it holds when our code is
+   wrong — a corrupted `state.json`, a job that loops, a job nobody has written
+   yet. Where the counting lives turns out not to be a job-spec concern at all.
+   Retries stay where §7 puts them. **Built and verified 2026-09-11** — see
+   §10b's spend-cap decision for the live proof.
+2. **Does Matt's beehiiv plan include API access?** No longer gates anything
+   immediate — newsletter reporting was displaced as the Phase 3 candidate on
+   2026-09-11 and is now a Phase 4 candidate. Still not answerable from the
+   public docs (checked again 2026-09-11; beehiiv's own developer docs don't
+   state per-tier gating). It is a look in his account settings, whenever the
+   project comes back up.
+3. ~~What the two work windows actually are.~~ **Confirmed with Matt,
+   2026-09-11, with one correction.** Overnight is **23:00–05:00 CT**, not the
+   proposed 23:00–06:00: Matt is an early riser and is usually online around
+   05:15, so overnight work must *finish* inside the window rather than merely
+   start in it. Daytime stays 09:00–16:00 CT for lighter collection and checks,
+   when an approval can be answered within an hour or two — via Discord, not
+   Telegram, per question 4. The scheduled model warm-up before the overnight
+   window stands.
 4. ~~Whether Discord stays.~~ **Resolved 2026-09-11 — Discord, everywhere.**
    Turned out moot: OpenClaw's actual live channel was already Discord, not
    Telegram as assumed when this question was written. One channel across
    caddy, infra-watch, and OpenClaw now, not two.
-5. **The claude.ai project for this folder.** Matt is moving off Claude as the
-   front door, but Claude stays for planning. Whether that still warrants a
-   dedicated project, or whether planning happens in the roadmap project, is
-   unresolved.
+5. ~~The claude.ai project for this folder.~~ **Resolved 2026-09-11 — a
+   dedicated project exists and earns its place.** The claude.ai project
+   "Dev Environment" holds the cross-session handoff doc, which is what lets a
+   fresh Cowork thread pick this up without Matt re-explaining it. This folder
+   and git stay the source of truth; the project doc is a pointer and a
+   summary, never a second copy.
+
+## 10b. Decisions and findings — 2026-09-11, post-Phase-2
+
+Four decisions taken with Matt, and two findings that came out of reading the
+real code rather than its description.
+
+### The decisions
+
+**Spend cap: $5 a week, enforced by OpenRouter.** See question 1 above for why
+this displaced the design §7 assumed. Sized against Phase 2's measured worst
+case — one job failing all the way to a hard stop cost $0.927612, so $5 covers
+roughly five of those a week. The one step that needs Matt: a capped key can
+only be created with an OpenRouter **Management API key**, and that can only be
+made in the account UI, not from the API.
+
+**Built and verified 2026-09-11.** `scripts\setup-openrouter-cap.ps1` and
+`scripts\verify-openrouter-cap.ps1` (this repo) do the two halves — setup runs
+once with a Management API key and is Matt's to run, verify needs only the
+capped key and can be run anytime. The capped key (`openclaw-automation`,
+`limit: 5`, `limit_reset: weekly`) now lives in OpenClaw's credential store,
+replacing the prior uncapped OpenRouter credential; the Management key that
+created it is deleted, per plan. Verified against the live system, not just
+configured: one real paid attempt run through the proving ground's escalation
+path cost `$0.31594`, and a follow-up `verify` call showed `limit_remaining`
+drop from `5` to `4.68406` on the same key — proof that OpenRouter is counting
+spend against this key specifically, not merely that a limit is set somewhere.
+
+**The timer proof gets closed now, on the proving ground**, rather than folded
+into Phase 3's first real job. The reasoning: scheduling problems and real job
+logic are much cheaper to debug one at a time. This also settles the proving
+ground's fate by sequence — it stays until the proof passes, then its scheduled
+task and dated outputs come off and the folder stays in git as a worked
+reference.
+
+**Phase 3 is job search triage**, not newsletter health reporting. OpenClaw
+takes over fit scoring on rows the existing pipeline already collects; the
+LinkedIn browser steps stay where they are. Newsletter reporting was a prior
+thread's inference; moving the job search off Claude is something Matt has
+stated he wants. Newsletter reporting remains a live Phase 4 candidate — with
+the caveat that Looker Studio already does its chart half free, so the agent's
+real contribution there is the written read on what changed. Full scope in
+`PHASE3-job-search-triage.md`.
+
+**Work windows confirmed.** See question 3 above.
+
+### Finding: an unattended job that fails to start is currently silent
+
+Phase 2 proved the job handles *its own* failures — five attempts, hard stop,
+report to disk, Discord ping. It could not prove what happens when the job
+never starts, because a human watched every run.
+
+`run-job.ps1` opens with `$ErrorActionPreference = 'Stop'`. If `docker exec`
+is unreachable — which is precisely the Windows Task Scheduler failure mode the
+timer test exists to find, since Docker Desktop runs per-user and a
+non-interactive task often cannot see it — the script dies before reaching any
+Discord call and before writing any state. Nothing posts. Nothing lands on
+disk. **Silence currently looks exactly like success.**
+
+For work nobody is watching, that is a larger hole than anything Phase 2
+closed, and it is invisible to the kind of testing Phase 2 did. A dead-man's
+check — a heartbeat file written before anything that can throw, plus a
+separate check that alarms when the heartbeat is stale — is therefore part of
+the timer task, not a follow-up to it. A try/catch inside the script is worth
+adding but is not a substitute: it cannot fire if the script never launched.
+
+This is the fourth time on this project that reading the real system has
+contradicted a confident description of it (the disconnected `openclaw.json`,
+the live Discord channel, the secrets-audit warning that wasn't a failure, and
+now this). Treat it as the method, not a run of luck.
+
+### Finding: the trigger question is really an architecture question
+
+Matt's stated preference was to fire the job from n8n rather than Windows Task
+Scheduler, on the reasoning that n8n already runs on a schedule and sidesteps
+the Task Scheduler/Docker problem. Reading `run-job.ps1` undercut that: the
+script is a **Windows host** script that reaches into the container with
+`docker exec`, so whatever fires it must run host PowerShell. n8n is inside a
+container and cannot, without new plumbing. Nor, for the mirror-image reason,
+can OpenClaw's own built-in scheduler.
+
+So the trigger choice is downstream of a question this plan has not asked:
+**does job orchestration live in host PowerShell, or inside OpenClaw?** §5's
+"checks are caddy-shaped `verify-*.ps1` scripts" convention points one way;
+§2's "OpenClaw is the place work is started, watched, approved and reported"
+points the other. Phase 2's close-out gathers the evidence — what OpenClaw's
+scheduler can actually invoke, whether its failure notification is real,
+whether n8n can reach Docker cleanly. Phase 3 makes the call.
+
+One thing does not move regardless: the check script stays outside the agent.
+A model never grades its own output.
 
 ## 11. Sources for the OpenClaw claims
 

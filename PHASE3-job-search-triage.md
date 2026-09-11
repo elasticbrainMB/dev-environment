@@ -1,0 +1,221 @@
+# PHASE 3 — job search triage
+
+**Chosen 2026-09-11.** The first real project. Not a kickoff-and-go doc — the
+shape is settled but several facts still need checking on the machine before
+anything is built. Read all of it before starting.
+
+## The decision, and what it displaced
+
+Phase 3 is **OpenClaw scoring job-listing fit overnight**, on rows the
+existing job-search pipeline has already collected.
+
+The previous thread's handoff leaned toward newsletter health reporting. That
+got displaced for a reason worth recording: Matt has separately and
+explicitly said he wants OpenClaw taking over parts of the daily job search,
+to cut Claude usage. Newsletter reporting was a reasonable inference; this is
+a stated want, on a workflow that already runs, that matters to a goal he's
+actively pursuing. Stated beats inferred.
+
+Newsletter reporting isn't dead — it's a good Phase 4 candidate, and the two
+gates on it (beehiiv API tier, spend cap) were never checked. The spend cap
+is now closed regardless. One honest note carried forward for whenever it
+comes up again: Looker Studio already builds the chart half of that project
+free from Analytics and Search Console, so the agent's real contribution
+there is the written read on what changed, not the dashboard.
+
+## What already exists — don't rebuild any of it
+
+The job-search pipeline is live and working today. Phase 3 replaces exactly
+one piece of it.
+
+| Piece | Where it runs now | Phase 3 |
+|---|---|---|
+| ~7 LinkedIn keyword searches, Minneapolis-scoped, marketing/AI-adjacent director and program-manager titles | Cowork scheduled task "Daily job search 2026 v2", via browser control | **Unchanged** |
+| Fit scoring — a 1–10 score and a "why it fits" note per row | Same Cowork task, using Claude | **This is what moves to OpenClaw** |
+| Job Tracker spreadsheet, the record of every row | Google Sheets | **Unchanged** |
+| Write path to the tracker | A Google Apps Script webhook — the **only** permitted write path | **Unchanged, and still the only one** |
+| Resume tailoring for Fit Score = 10 rows | Cowork task `resume-autopilot-fit10`, ~06:00 daily | **Unchanged** |
+
+Two constraints inherited from that pipeline, both non-negotiable:
+
+- **Direct sheet editing is forbidden.** A mis-click in May 2026 overwrote
+  header cells. Everything goes through the webhook.
+- **The queue is read from the webhook**, `GET {webhook}?report=queue`, not by
+  scraping the sheet.
+
+The webhook URL and the tracker URL are both in the `resume-tailoring` skill;
+read them from there rather than copying them into a script by hand.
+
+**Treat the webhook URL as a credential, not an address.** Anyone holding it
+can write to the Job Tracker — it carries its own authorization in the URL and
+there is nothing else in front of it. Under the §5 guardrail added 2026-09-11,
+that means it does not get pasted into prompts, hardcoded into a committed
+script, or printed by anything a model reads. It belongs in OpenClaw's
+`SecretRef` store, which is exactly the case `SecretRef` protects against: a
+value a model would otherwise see in a tool call. That is a different store
+from the model-provider credentials — see the three-store finding in the
+plan's Phase 2 close-out before wiring it.
+
+## Why this job is the right first real one
+
+It lands on the easy path Phase 2 actually proved, which was the whole point
+of choosing it on evidence:
+
+- **It reads and writes files and calls an HTTP endpoint. It does not shell
+  out.** Phase 2 proved the exec-approval gate only covers `exec`, `process`
+  and `apply_patch` — so this job needs none of the plan's §6 allowlist work.
+- **It splits across two runners the way the plan predicts is normal.** n8n or
+  the existing task collects; OpenClaw judges.
+- **The judgment half is genuinely a model's job** and the collection half is
+  genuinely not, so the split isn't arbitrary.
+- It runs comfortably inside the confirmed overnight window (23:00–05:00 CT),
+  on the local model, with the escalation path capped at $5/week.
+
+There's also a plausible side benefit worth testing early rather than
+assuming: the Cowork sandbox blocks `script.google.com` outright (403
+allowlist), which is why the current pipeline has to call its own webhook
+through a browser from a neutral origin, and why POSTs containing query
+strings sometimes get blocked by the browser guard. **The OpenClaw container
+runs on Matt's own network and probably has no such restriction** — which
+would delete that whole workaround. Probably. Verify it first thing; if it
+holds, it's a real argument for this project beyond the cost saving.
+
+## Explicitly out of scope
+
+**OpenClaw does not run the LinkedIn searches.** Matt considered it and chose
+against it for now. LinkedIn actively fights automation, and browser control
+would reopen the approval-permission work Phase 2 just set aside. Revisit
+after this ships, not during.
+
+## The design
+
+### Input
+Unscored rows from the tracker. **Unknown to resolve first:** the webhook's
+`?report=queue` returns `fit10` and `interested` queues — it is not clear
+there is an "unscored" queue at all, since scoring currently happens inline
+during collection. Check what the webhook exposes before designing around it.
+If no unscored queue exists, adding one to the Apps Script is a small change
+and belongs to this phase.
+
+### Work
+For each row: read the job description, apply the scoring rubric, produce a
+1–10 fit score and a short "why it fits" note. Local model first; escalate
+per the settled model policy after two consecutive no-progress attempts.
+
+**Unknown to resolve:** the scoring rubric is currently implicit in the Cowork
+task's prompt. It has to be written down explicitly before a local model can
+apply it consistently. Capture it from the live task prompt — noting that
+Cowork rewrites a scheduled task's prompt after its first run, so read the
+current live version from the Scheduled sidebar, not the original.
+
+### Output
+Fit Score and Why It Fits, written back through the webhook.
+
+### The check — and its honest limit
+The convention is that a model never grades its own output, and checks are
+scripts. That works here only partway, and it's worth being clear about
+where it stops.
+
+A PowerShell check script can verify **shape**, and should: the score is an
+integer 1–10, "why it fits" is non-empty, under a word limit, and actually
+references something specific from the job description rather than being
+generic. That catches the common failure modes — a missing score, a wall of
+text, a hallucinated summary that names nothing from the posting.
+
+A script **cannot** verify that a 7 should have been a 4. There is no ground
+truth for a judgment call. So correctness gets checked two other ways:
+
+1. A separate model call, no shared history, scoring a sample independently —
+   flag disagreements greater than 2 points for Matt.
+2. The shadow period below.
+
+Don't paper over this. Getting a score wrong is not a neutral error here: a
+Fit Score of 10 automatically triggers resume generation at 06:00 the next
+morning. A bad 10 costs Matt a wasted resume; a bad 4 on a good job costs him
+the job.
+
+### Rollout — shadow first
+Because of that cascade, OpenClaw does **not** write the real Fit Score on day
+one.
+
+1. **Shadow.** OpenClaw writes its score to a separate column. The existing
+   Claude scoring keeps running and keeps owning the real Fit Score.
+2. **Compare** for at least a week of real rows. How often do they agree
+   within 1 point? Where they disagree badly, which one was right?
+3. **Cut over** only if the agreement holds, and cut over the scoring only —
+   the 6am resume autopilot keeps reading the same column it always has and
+   shouldn't notice anything changed.
+
+This costs a week and removes essentially all of the risk. Take the week.
+
+### Stop behaviour
+The settled rule, unchanged: two local attempts, escalate, hard stop at five
+consecutive no-progress attempts, report to disk, `#alerts` post, `#decisions`
+ping, and no restart on the next tick. `proving-ground\run-job.ps1` is the
+working reference for all of it.
+
+Result to disk before anything else — disk is the source of truth, the tracker
+and Discord are mirrors.
+
+## Where the orchestration lives — decide this before building
+
+Carried from `PHASE2-CLOSEOUT-timer-and-spendcap.md` §B1, and it lands here
+rather than there:
+
+The proving ground put orchestration in a **Windows host PowerShell script**
+that reaches into the container with `docker exec`. That works, it's proven,
+and it matches the project's "checks are caddy-shaped `verify-*.ps1` scripts"
+convention. But it also means the trigger has to be host-side, which rules out
+both n8n and OpenClaw's own scheduler, and it sits awkwardly against the
+project's stated aim that OpenClaw is *the place work is started, watched,
+approved and reported*.
+
+**The evidence is now in, gathered 2026-09-11 during Phase 2's close-out.**
+Both alternatives to host PowerShell were checked on the real machine and both
+are ruled out:
+
+- **n8n cannot reach Docker at all.** Inspected the running container
+  directly: no Docker socket mounted (`/var/run/docker.sock` is absent inside
+  it), no `DOCKER_HOST` set. It has no path to Docker, let alone to a host
+  PowerShell script.
+- **OpenClaw's own scheduler cannot invoke a host command.** Its command and
+  script payloads run entirely inside the Gateway process, so it can neither
+  run `run-job.ps1` nor `docker exec` into another container.
+
+So for anything shaped like the proving ground, **Windows Task Scheduler is
+the only working trigger**, and the architecture question narrows to: does the
+orchestration itself move inside OpenClaw, or does it stay on the host where
+Task Scheduler can reach it? That is still Phase 3's call — but it is now a
+real either/or, not a three-way.
+
+**One finding from that check belongs in the design, not just the record:**
+OpenClaw's failure notifications only fire for a job that *starts and then
+errors* — two consecutive failures, one-hour cooldown. They do not detect a
+job that never started. So even moving orchestration inside OpenClaw would
+**not** close the silent-non-start gap on its own. A dead-man's check is
+required either way; it is not a workaround for having picked the host.
+
+**Where the dead-man's check should live in Phase 3.** The proving ground's
+version is its own scheduled task, which leaves the obvious hole: if the
+checker itself fails to run, silence looks like success again, one level up.
+Acceptable for a throwaway proof, not for a recurring real job. In Phase 3 the
+staleness check belongs **inside infra-watch's existing schedule** rather than
+as a task of its own — infra-watch already runs reliably, already owns this
+class of problem, and already has the Discord webhook path that works when the
+`openclaw` container is down. One fewer independent thing that can quietly
+stop.
+
+The one thing that shouldn't move inside the agent regardless: the check
+script. Whatever else changes, the thing that grades the work stays outside
+the thing that does it.
+
+## Gates before any building starts
+
+1. Phase 2's close-out is done — spend cap live and verified, timer proven,
+   dead-man's check in place. A recurring unattended job should not go live
+   before the thing that tells you it didn't run.
+2. The webhook's unscored-row question is answered.
+3. The scoring rubric is written down.
+4. `script.google.com` is confirmed reachable from the OpenClaw container.
+
+None of these need Matt. All four are checkable on the machine.

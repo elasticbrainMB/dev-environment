@@ -18,6 +18,8 @@ $maxWords        = 25
 $hardStopAt      = 5
 $alertsChannel   = 'channel:1529976260007301242'   # #alerts - quiet, every run
 $decisionsChannel = 'channel:1540419837086404668'  # #decisions - pings, needs-Matt only
+$heartbeatPath   = Join-Path $root 'heartbeat.txt'
+$postDiscordDirect = 'C:\automation\infra-watch\scripts\post-discord.ps1'  # host-side webhook, no docker dependency
 
 function Write-Log {
   param([string]$Line)
@@ -53,6 +55,13 @@ function Send-Discord {
   & docker exec $container openclaw message send --channel discord --target $Channel --message $Message --json 2>&1 | Out-Null
   if ($LASTEXITCODE -ne 0) { Write-Log "WARN: discord post to $Channel failed (exit $LASTEXITCODE)" }
 }
+
+# Written before anything that can throw or hang (docker included) - the one
+# signal that survives even when this session can't reach docker or Discord.
+# A separate scheduled check (check-heartbeat.ps1) alerts if this goes stale.
+[System.IO.File]::WriteAllText($heartbeatPath, (Get-Date).ToString('o'), $utf8NoBom)
+
+try {
 
 $state = Get-State
 
@@ -156,3 +165,16 @@ else {
 }
 
 exit 0
+
+}
+catch {
+  # Extra safety net, not a substitute for the heartbeat: this can't fire if
+  # docker itself is what's broken, since both logging paths below may also
+  # depend on it having worked at some point. Try both anyway - each is
+  # independent of the other, so one failing doesn't take down the other.
+  $errMsg = $_.Exception.Message
+  try { Write-Log "FATAL: unhandled error - $errMsg" } catch {}
+  try { Send-Discord -Channel $alertsChannel -Message "[proving-ground] FATAL error in run-job.ps1: $errMsg" } catch {}
+  try { & $postDiscordDirect -Channel 'decisions' -Message "[proving-ground] run-job.ps1 crashed: $errMsg" -Title 'proving-ground FATAL' 2>&1 | Out-Null } catch {}
+  exit 1
+}
