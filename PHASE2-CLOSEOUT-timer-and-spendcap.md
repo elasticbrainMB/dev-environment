@@ -292,6 +292,55 @@ Wrapping the body of `run-job.ps1` in try/catch with a Discord post in the
 catch is worth adding too, but it is **not** a substitute: it can't fire if
 the script never launched, which is the case that matters.
 
+### B3b. Drive the whole experiment from timers, not from an agent being awake
+
+**Added 2026-09-11, after a near miss worth recording.** The first attempt at
+B4 had Claude Code planning to stay awake through the night on a self-paced
+loop — checking in hourly until 23:00, then every ten minutes to stop the
+container and set `state.json` at the right moments. In the same message it
+also reported that it has no reliable unattended wake-up outside `/loop`.
+
+Both cannot be true, and the failure mode if the loop doesn't fire is the
+exact one this task exists to close: nothing happens overnight, nothing says
+so, and silence is indistinguishable from success at 05:15.
+
+**So no step of the proof depends on any agent being present.** Every
+intervention is a scheduled task, registered in the same one-off setup script
+Matt runs. If an agent happens to be awake, fine — but the evidence lands on
+disk and in Discord either way.
+
+A sequence that produces all three proof points from one unattended window,
+with 10-minute ticks:
+
+| Time (CT) | What fires | What it proves |
+|---|---|---|
+| 23:00 – 23:50 | Normal ticks | **B4.1** — a timer fires the job and it passes, nobody present |
+| ~23:50 | A task stops the `openclaw` container | Sets up the next two |
+| 00:00 – 00:40 | Five ticks fail in a row, then hard stop, report to disk, `#alerts` and `#decisions` posts | **B4.2** — the failure path on a real timer, not a hand-run one |
+| 00:50 | Next tick sees `status: stopped` | **B4.3** — the stop rule survives a real scheduled tick, no restart |
+| ~01:00 | A task restarts `openclaw` **and disables the `proving-ground-run-job` task**, leaving the heartbeat checker running | Sets up the last one |
+| ~01:20 | Heartbeat passes 15 minutes stale, checker posts to `#decisions` | **The silent-non-start case** — proven on a timer, not by hand |
+| ~01:40 | A task re-enables `proving-ground-run-job` | Cleanup |
+
+Three notes on this shape:
+
+- **The container-down window gives B4.2 and B4.3 for the price of one.** Five
+  consecutive failed ticks is exactly the stop rule's trigger, so leaving the
+  container down for about 50 minutes drives the hard stop naturally, and the
+  following tick tests the no-restart property. No hand-editing of
+  `state.json` for either.
+- **No real spend.** With the container down the call fails at `docker exec`
+  and never reaches OpenRouter, so the escalation attempts cost nothing even
+  though the script names the paid model. The $5 key cap backstops it anyway.
+- **Stopping Docker from a scheduled task is itself subject to the
+  non-interactive-Docker question** this whole task exists to answer. If that
+  step fails, that is a *finding*, not a broken experiment — record it. If it
+  muddies the rest, substitute a failure needing no Docker access (renaming
+  `input.txt`, say) and test container-down separately, by hand.
+
+Exact times, task names and mechanics are yours to choose. The requirement is
+only that Matt runs one script and reads results in the morning.
+
 ### B4. Prove it, don't claim it
 
 Same standard as Phase 2 — real evidence, not a self-report:
