@@ -389,6 +389,91 @@ incorrectly assumes Telegram — checked, not just assumed.
 yet. See the handoff doc for the git setup, alongside the one open
 verification above.
 
+#### Phase 2 close-out, 2026-09-11 — proven end to end, one property still untested
+
+Built and run for real in `dev-environment\proving-ground\`: an input file,
+a job script, a PowerShell check script (caddy's `verify-*.ps1` shape), and
+a state file implementing §7's stop rule. Both the passing run and the
+deliberate failure were observed with real evidence — read back from
+Discord and from disk, not just claimed.
+
+**The biggest finding changes how every future job should be assessed, not
+just this one.** OpenClaw's exec-approval system — the whole subject of
+§6's correction — only gates `exec`, `process`, and `apply_patch` tool
+calls. **A job that only reads and writes files never touches that gate at
+all.** Confirmed directly: the proving-ground job ran 8 times across both
+scenarios with zero approval prompts, and `openclaw approvals get`
+afterward showed the `automation` agent's allowlist still completely empty
+— nothing was ever silently granted, the gate was simply never in the
+job's path. **Practical consequence for Phase 3 and beyond: don't design
+approval scoping for a job before checking whether it actually shells out.
+Most won't.** The allowlist machinery from §6 still matters, but only for
+the minority of jobs that need to run an actual command.
+
+**The stop rule's own hardest, previously-unproven claim is now proven.**
+`PLAN §5` flagged this as *"never exercised on a real unattended
+run"* and Phase 2 existed specifically to force it. Result: attempts 1–2
+local (fail), attempts 3–5 escalated to
+`openrouter/~anthropic/claude-sonnet-latest` (fail), hard stop at exactly
+attempt 5, a report written to disk, a ping to `#decisions` — and, run a
+sixth time by hand to simulate the next scheduled tick, **the job did not
+restart: no model call, no cost, state untouched.** Total real spend across
+the three paid attempts: $0.927612 ($0.3058 / $0.3092 / $0.3126 — cost rises
+slightly attempt to attempt, plausibly a growing context window from the
+accumulating failure history; not investigated further, not worth it for a
+throwaway job).
+
+**One design call, made for a good reason: the recurring trigger stayed
+host-side, not OpenClaw's own internal cron.** The check script has to be
+deterministic PowerShell, per this project's own "a model never grades its
+own output" rule and the existing caddy convention — and the OpenClaw
+container is Debian with no PowerShell in it. So the schedule that calls
+the script lives on the host regardless of which scheduler ends up used;
+only the one LLM step (read input, write summary) runs as the real
+`automation` agent identity. This doesn't weaken anything §7 or §6 rely
+on — the approval-gate property being tested is unaffected by which
+scheduler fires the script.
+
+**Credentials: a third storage mechanism, on top of the two Phase 1 found.**
+OpenRouter needed `openclaw models auth paste-api-key`, not the `SecretRef`
+path used for Ollama — OpenClaw keeps a separate encrypted store
+specifically for model-provider credentials, distinct from both plain
+`.env` and the general secrets/`SecretRef` system. Which mechanism a given
+credential belongs to isn't one consistent rule; it depends on whether
+OpenClaw treats it as a model-provider credential or a general tool secret.
+Worth checking which store applies *before* wiring in the next new
+credential, rather than assuming Phase 1's pattern generalizes.
+
+**Also resolved: model exposure was too wide, now fixed.** OpenRouter
+resolves 438 models by default; both `main` and `automation` could
+originally select any of them. Fixed via `agents.defaults.modelPolicy.allow`
+— a real enforcement point (verified: an explicit attempt to select a
+disallowed model was rejected outright, not just hidden from a menu) — set
+to exactly three models: the existing two local ones plus
+`openrouter/~anthropic/claude-sonnet-latest`. `models list` still *displays*
+the full catalog regardless; the policy blocks selection, not visibility —
+worth knowing so a future listing isn't mistaken for the allowed set.
+
+**One open item, not a failure — Matt's own call.** Registering the actual
+Windows Scheduled Task hit the same standing-persistent-action classifier as
+`git push` in Phase 1, and Matt chose not to create it for now, leaving the
+proving-ground job runnable only by hand. **That leaves exactly one of the
+six proof points partially open: a real timer firing the job with nobody
+watching.** Everything else about the runner is proven; only the literal
+unattended trigger is still hand-invoked rather than scheduled. Worth
+closing before treating any *real* Phase 3 job as unattended-ready — the
+first real job is a reasonable place to prove it, if it doesn't get proven
+sooner.
+
+**Genuinely still open, carried to Phase 3:** no weekly spend cap is wired
+in anywhere for the OpenRouter escalation path — fine for a throwaway job
+that ran once, not fine for anything real and recurring. This has to exist
+before Phase 3's job goes live, not be discovered after a bill does.
+
+**Not yet decided:** whether to tear down `proving-ground\` now or leave it
+as a working reference for Phase 3's build. No cost or risk in leaving it —
+nothing in it is scheduled to run again on its own.
+
 ### Phase 2 — The proving ground
 
 A deliberately trivial recurring job, built to be thrown away, that exercises

@@ -1,0 +1,15 @@
+2026-09-11 06:24:12  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-11 06:24:30  FAIL attempt 1 via ollama/qwen3.5:9b-q8_0 (no progress) - SUMMARY: 4 checks run. Failures: 4.
+2026-09-11 06:26:07  START attempt 2/5 using ollama/qwen3.5:9b-q8_0
+2026-09-11 06:26:15  PASS attempt 2 via ollama/qwen3.5:9b-q8_0 - SUMMARY: 4 checks run. Failures: 0.
+2026-09-11 06:28:15  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-11 06:28:23  FAIL attempt 1 via ollama/qwen3.5:9b-q8_0 (no progress) - SUMMARY: 4 checks run. Failures: 1.
+2026-09-11 06:28:35  START attempt 2/5 using ollama/qwen3.5:9b-q8_0
+2026-09-11 06:28:42  FAIL attempt 2 via ollama/qwen3.5:9b-q8_0 (no progress) - SUMMARY: 4 checks run. Failures: 1.
+2026-09-11 06:29:01  START attempt 3/5 using openrouter/~anthropic/claude-sonnet-latest
+2026-09-11 06:29:17  FAIL attempt 3 via openrouter/~anthropic/claude-sonnet-latest (no progress) - SUMMARY: 4 checks run. Failures: 1.
+2026-09-11 06:29:28  START attempt 4/5 using openrouter/~anthropic/claude-sonnet-latest
+2026-09-11 06:29:39  FAIL attempt 4 via openrouter/~anthropic/claude-sonnet-latest (no progress) - SUMMARY: 4 checks run. Failures: 1.
+2026-09-11 06:29:51  START attempt 5/5 using openrouter/~anthropic/claude-sonnet-latest
+2026-09-11 06:30:03  STOP after 5 consecutive no-progress attempts - SUMMARY: 4 checks run. Failures: 1.
+2026-09-11 06:30:45  SKIP: job is stopped (since 09/11/2026 06:30:03) - no restart on scheduled tick.

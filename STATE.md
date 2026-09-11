@@ -11,10 +11,10 @@ _Status: **Active**. Graduated from Planned 2026-09-10._
 |---|---|
 | Folder | `C:\automation\dev-environment` |
 | Repo | `github.com/elasticbrainMB/dev-environment`, `main` |
-| claude.ai project | Not created — open question 5 in the plan |
+| claude.ai project | **"Dev Environment"** — resolves open question 5. Holds the cross-session handoff doc; this file and the plan stay the on-disk source of truth |
 | Roadmap pointer | `C:\automation\roadmap\projects\dev-environment.md` |
 | Plan | `PLAN-dev-environment-v1.md`, this folder |
-| History | `history\dev-environment-planning-v0.5.md`, this repo — moved from the roadmap repo 2026-09-11; removed there in the same piece of work |
+| History | Moved, 2026-09-11 — `history\dev-environment-planning-v0.5.md`, this folder |
 
 ## What this is
 
@@ -31,10 +31,10 @@ gets migrated.
 
 | Phase | State |
 |---|---|
-| **0 — Graduate the project** | **Done, 2026-09-11.** Repo created and pushed: `github.com/elasticbrainMB/dev-environment`, `main`. Push needed a `git push`-scoped permission rule (harness-level, separate from Matt's go-ahead) — added to `.claude/settings.local.json`, scoped to this project, force-push variants still denied. The superseded v0.5 planning doc is moved: `history\dev-environment-planning-v0.5.md` in this repo, removed from `roadmap\planning\dev-environment.md` in the same piece of work (roadmap's `STATE.md` and project pointer already graduated it to Active, committed together with the removal). claude.ai project still open — question 5 in the plan |
-| **1 — OpenClaw 2.0 config reset** | **Done.** Host `openclaw.json` confirmed disconnected from the live container config (named Docker volume, not a bind mount) — all live changes go through the CLI. `automation` agent identity live and correct. `OLLAMA_API_KEY` confirmed as a real `SecretRef` object (`{source: "env", provider: "env", id: ...}`), not the raw key — verified directly, not just claimed |
-| **2 — The proving ground** | Not started. A throwaway recurring job, run to a pass and then broken on purpose to fire the stop rule |
-| **3 — First real project** | Deferred by decision, chosen on Phase 2 evidence. Leaning: newsletter health reporting |
+| **0 — Graduate the project** | **Done, 2026-09-11.** Repo live at `github.com/elasticbrainMB/dev-environment`, `main` branch, 3 commits. `roadmap\planning\dev-environment.md` moved here as `history\dev-environment-planning-v0.5.md`; removed from roadmap in the same pass as roadmap's own pending pointer-update commit, so history never shows the old doc and a stale pointer coexisting |
+| **1 — OpenClaw 2.0 config reset** | **Done, 2026-09-11.** Host `openclaw.json` confirmed disconnected from the live container config (named Docker volume, not a bind mount) — all live changes go through the CLI. `automation` agent identity live and correct. `OLLAMA_API_KEY` confirmed as a real `SecretRef` object, not the raw key — verified directly, not just claimed. A `git push`-scoped permission rule now lives in this project's local Claude Code settings, so future pushes here don't need a manual unblock |
+| **2 — The proving ground** | **Proven end to end, 2026-09-11 — 5 of 6 proof points closed.** Built and run for real in `proving-ground\`. Passing run and deliberate-failure run both observed with real evidence (Discord, disk, cost). Biggest finding: the exec-approval gate only covers `exec`/`process`/`apply_patch` — a job that only reads and writes files never touches it, so most future jobs need none of §6's allowlist work. Stop rule proven exactly as designed: 2 local fails → 3 paid-escalation fails (`openrouter/~anthropic/claude-sonnet-latest`, real spend $0.927612) → hard stop at attempt 5 → report to disk → Discord ping → confirmed no restart on a sixth, hand-run tick. Model exposure narrowed from OpenRouter's 438-model catalog to an explicit 3-model allowlist via `agents.defaults.modelPolicy.allow`, verified as real enforcement (a disallowed model was rejected, not just hidden). **Left open, Matt's own call, not a failure:** the Windows Scheduled Task itself was not created — same standing-action classifier as `git push` in Phase 1 — so the one still-unproven property is a real timer firing the job with nobody watching. **Carried to Phase 3, not optional:** no weekly spend cap is wired in anywhere for the OpenRouter escalation path yet; must exist before any real recurring job uses it. See `PLAN-dev-environment-v1.md`'s "Phase 2 close-out" section for the full findings, including a third credential-storage mechanism (`models auth`, distinct from both `.env` and `SecretRef`) |
+| **3 — First real project** | Deferred by decision, chosen on Phase 2 evidence. Leaning: newsletter health reporting, scoped so the boring checkable collection half ships first. Two gates not yet checked: whether Matt's beehiiv plan includes API access, and the spend cap above |
 
 ## Decisions on the record
 
@@ -49,16 +49,28 @@ gets migrated.
 | 2026-09-11 | **Front door channel: Discord**, not Telegram — it was already live and wired to approvals when Claude Code checked. Telegram stays configured but off. Resolves the plan's open question 4 |
 | 2026-09-11 | **Secrets migration scope: only what the audit flagged** (`OLLAMA_API_KEY`). The other three plaintext secrets in `.env` stay as-is |
 | 2026-09-11 | **Claude Code may push to git in this project without asking each time**, once a permission rule scoped to `git push` (not broader) is in place. Deliberate call, not a default — Claude Code's harness blocks pushes by default for the same reason the OpenClaw approval gate exists: a push is visible and hard to undo. Revisit if this project ever needs a *narrower* rule than "any push in this folder" (e.g. once Phase 2 automations exist, whether they should push too, or only Matt/interactive Claude Code sessions) |
+| 2026-09-11 | **Exec-approval scoping (§6) is deprioritized for most future jobs** — proven in Phase 2 to only apply to jobs that shell out. Still needed for the minority that do |
+| 2026-09-11 | **Escalation model set to exactly 3 allowed models** (`agents.defaults.modelPolicy.allow`) — the two existing local Ollama models plus `openrouter/~anthropic/claude-sonnet-latest` — instead of OpenRouter's full 438-model catalog |
+| 2026-09-11 | **A weekly spend cap on the OpenRouter escalation path is required before Phase 3**, not optional. Nothing enforces one yet |
 
 ## Open, blocking nothing yet
 
-The five open questions live in `PLAN-dev-environment-v1.md` §10. The two
-that will bite first:
+Full list in `PLAN-dev-environment-v1.md` §10 (5 items) and the Phase 2
+close-out section. What will bite first, in rough order:
 
-- Whether OpenClaw enforces per-job budgets and retries, or the job's own
-  check script has to. Phase 1 answers it.
+- **A weekly spend cap for the OpenRouter escalation path.** Must exist
+  before Phase 3's job goes live — the one carried, non-optional item from
+  Phase 2.
+- **The Windows Scheduled Task itself.** Matt declined to create it during
+  Phase 2 (same standing-action classifier as `git push`); it's the one
+  proof point Phase 2 didn't close. Worth closing before treating any real
+  job as unattended-ready.
 - Whether Matt's beehiiv plan includes API access. Gates the leading Phase 3
   candidate.
+- Whether to tear down `proving-ground\` or leave it as a working reference
+  — no cost either way, genuinely undecided.
+- The two work-window times (overnight heavy-local vs. daytime light) —
+  proposed in the plan §10.3, not confirmed with Matt.
 
 ## Execution route
 
@@ -69,6 +81,16 @@ Matt's call: manage shell-dependent work through Claude Code on the mini PC
 instead. Claude in Cowork keeps doing file-level work (read/write/research)
 through the tools that still work, and hands off anything needing a live
 shell or a running container's state as a written task list.
+
+**Standing practice since:** the file-write bridge has its own bug — writing
+two different files to the same local staged filename in successive calls
+can silently serve the first file's stale bytes on the second write, while
+still reporting success. Every write to this device is now followed by an
+independent re-read (fresh staged filename, byte-size or content check)
+before treating it as done. And per Matt's explicit, repeated feedback: keep
+back-and-forth through him to a minimum — resolve routine calls without
+asking, batch anything that must go through him, and reserve real questions
+for hard blocks (a harness-level policy, a decision only he can make).
 
 ## Corrections
 
