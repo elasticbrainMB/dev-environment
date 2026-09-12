@@ -97,6 +97,15 @@ during collection. Check what the webhook exposes before designing around it.
 If no unscored queue exists, adding one to the Apps Script is a small change
 and belongs to this phase.
 
+**2026-09-12 — checked, blocked on the credential rule, not on effort.** The
+webhook URL isn't in any credential store yet (`openclaw secrets audit` shows
+only the two known plaintext items from Phase 1 — nothing webhook-related),
+so there's no way to make this call without either the URL or its response
+passing through a model's context. `scripts\check-webhook-queues.ps1` is
+ready: Matt runs it himself, it prompts for the URL hidden, and prints back
+only the queue names and row counts — never the URL, never row content.
+Waiting on him to run it.
+
 ### Work
 For each row: read the job description, apply the scoring rubric, produce a
 1–10 fit score and a short "why it fits" note. Local model first; escalate
@@ -107,6 +116,13 @@ task's prompt. It has to be written down explicitly before a local model can
 apply it consistently. Capture it from the live task prompt — noting that
 Cowork rewrites a scheduled task's prompt after its first run, so read the
 current live version from the Scheduled sidebar, not the original.
+
+**2026-09-12 — lives in its own file now, not inline here.** Per Matt's
+instruction, the rubric goes in `scoring-rubric.md`, extracted from the live
+Cowork prompt exactly as it stands — no cleanup, no improvement on the way
+out. Blocked on access, not effort: Cowork's Scheduled sidebar isn't reachable
+from this Claude Code session, so the file is a stub until Matt pastes in the
+live prompt text. Matt reviews and edits it before anything scores against it.
 
 ### Output
 Fit Score and Why It Fits, written back through the webhook.
@@ -326,11 +342,19 @@ otherwise:
 
 ## Gates before any building starts
 
-1. Phase 2's close-out is done — spend cap live and verified, timer proven,
-   dead-man's check in place. A recurring unattended job should not go live
-   before the thing that tells you it didn't run.
-2. The webhook's unscored-row question is answered.
-3. The scoring rubric is written down.
-4. `script.google.com` is confirmed reachable from the OpenClaw container.
+1. **Done, 2026-09-12.** Phase 2's close-out is done — spend cap live and
+   verified, timer proven, dead-man's check in place. See `STATE.md`.
+2. **Blocked on Matt, 2026-09-12.** The webhook's unscored-row question isn't
+   answered yet — see the note under Input above. `check-webhook-queues.ps1`
+   is ready for him to run.
+3. **Blocked on Matt, 2026-09-12.** The scoring rubric isn't written down yet
+   — see the note under Work above. `scoring-rubric.md` is a stub waiting on
+   the live Cowork prompt text.
+4. **Done, 2026-09-12.** `script.google.com` answers from inside the OpenClaw
+   container — `HTTP 302` in ~0.2s on a plain `curl`, no block, nothing like
+   Cowork's sandbox restriction. Domain-level reachability only; the actual
+   webhook round-trip is gate 2's job once it's answered.
 
-None of these need Matt. All four are checkable on the machine.
+Turned out two of the four need something only Matt has (a webhook URL, and
+Cowork's own UI) — not a correction to "none of these need Matt," just where
+this particular pair landed.

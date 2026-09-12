@@ -91,3 +91,49 @@ happen.
 
 **What's next:** starting Phase 3's four machine-checkable gates now, per
 Matt's instruction, reporting once at the end rather than per gate.
+
+---
+
+## 2026-09-12 — Phase 3 gates: two done, two need Matt
+
+Worked all four of Phase 3's opening gates in one pass, reporting once here
+rather than per gate, per the new mode.
+
+**Gate 1 (Phase 2 close-out done):** closed by the work above, same day.
+
+**Gate 4 (`script.google.com` reachable from the OpenClaw container):**
+confirmed directly — `curl` from inside the container got `HTTP 302` in
+about 0.2 seconds, no block. Cowork's own sandbox blocks this domain
+outright (403), which is part of why this project exists; the OpenClaw
+container has no such restriction. This is domain-level reachability only,
+not a full webhook round-trip — that's gate 2's job.
+
+**Gate 2 (does the webhook expose an unscored queue) — blocked on Matt, not
+on effort.** Checked first whether the webhook credential already lives
+anywhere accessible without a model seeing it: `openclaw secrets audit`
+inside the container shows only the two known plaintext items from Phase 1
+(the OpenRouter profile key, `OLLAMA_API_KEY`) — nothing webhook-related.
+It hasn't been wired in yet. Per the 2026-09-11 credential rule (the webhook
+URL is a write credential for the tracker, not just an address), I can't
+call it myself without either the URL or the response passing through my
+context. Wrote `scripts\check-webhook-queues.ps1` instead, same pattern as
+the OpenRouter setup scripts: Matt runs it himself, it prompts for the URL
+hidden, and prints back only the queue names and row counts. Waiting on him
+to run it and report the output.
+
+**Gate 3 (the scoring rubric written down) — blocked on Matt, not on
+effort.** Created `scoring-rubric.md` as a stub with the reason spelled out
+in the file itself: the live prompt only exists in Cowork's Scheduled
+sidebar, a surface this session has no tool access to, and reconstructing it
+from memory would risk exactly the quiet "improvement" Matt explicitly said
+not to do. Waiting on him to paste in the live prompt text (or the
+fit-scoring portion of it).
+
+**Decided on my own:** wrote both blocked items into `PHASE3-job-search-triage.md`
+directly (not just this log) so the doc stays the live source of truth, and
+updated `STATE.md`'s Phase 3 row to show exactly which two gates are done and
+which two are waiting, and why.
+
+**What's next:** waiting on Matt for the webhook queue check and the live
+rubric text. Nothing else in Phase 3 can proceed past those two without
+guessing at things he explicitly asked not to be guessed at.
