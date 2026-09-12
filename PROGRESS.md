@@ -137,3 +137,51 @@ which two are waiting, and why.
 **What's next:** waiting on Matt for the webhook queue check and the live
 rubric text. Nothing else in Phase 3 can proceed past those two without
 guessing at things he explicitly asked not to be guessed at.
+
+---
+
+## 2026-09-12 — gate 3 closed, and a credential incident along the way
+
+Matt tried the scheduled-task removal command and it failed:
+`Unregister-ScheduledTask : Cannot convert 'System.String' to the type
+'System.Management.Automation.SwitchParameter'`. My mistake — I wrapped it
+in `powershell.exe -NoProfile -Command "..."`, and the outer shell expanded
+`$false` to the literal text `False` before the inner command ever parsed
+it, which the SwitchParameter binder then rejected. He was already at an
+elevated PowerShell prompt, so the wrapper was unnecessary and actively
+harmful. Corrected: gave him the bare command with no wrapper. Not yet
+confirmed run.
+
+Matt also pasted the full live prompt of the `daily-job-search-2026-v2`
+Cowork task, unblocking gate 3. Extracted the scoring-relevant sections
+verbatim into `scoring-rubric.md`: core principle, both exclusion sections,
+seniority, the fit-score rubric, and the resume-variant assignment. Left out
+the LinkedIn/ATS sourcing steps and the webhook POST mechanics as out of
+scope for scoring — **decided on my own**, stated plainly in the file and to
+Matt so he can redraw the line if he disagrees.
+
+**Incident, not a footnote:** the pasted prompt contained the live Job
+Tracker webhook URL in plain text, so it entered this session's context —
+the exact scenario the 2026-09-11 credential rule exists to prevent, via a
+path nobody had anticipated (a task prompt, not a script or a manual
+command). Nothing was misused: I didn't echo it, write it to any file, or
+use it in a command. Flagged directly to Matt, including that the URL now
+sits in this session's transcript and asking whether he wants to rotate the
+Apps Script deployment — that's genuinely his call given the blast radius
+(every consumer of that URL would need updating), not something to decide or
+act on unilaterally.
+
+**Learned from this:** the credential rule so far had been about what
+*scripts* and *commands* touch. A live task prompt is a third path a secret
+can arrive by, and it's not one I was checking for before this happened.
+Worth remembering for anything pasted in going forward, not just anything
+typed or run.
+
+**Also sharpened gate 2** using what the extracted prompt revealed: the
+existing pipeline already assigns `fit_score` to every job inline at
+collection (Claude, not a separate scoring pass), so there's no genuine
+"unscored" state to query — the real open question is whether the webhook
+can return an all-rows queue, not an unscored one. Still needs Matt to run
+`check-webhook-queues.ps1`.
+
+**Gate status: 3 of 4 done.** Only the webhook queue check remains.

@@ -106,6 +106,25 @@ ready: Matt runs it himself, it prompts for the URL hidden, and prints back
 only the queue names and row counts — never the URL, never row content.
 Waiting on him to run it.
 
+**2026-09-12 — the question is sharper now that gate 3's extraction showed
+the live collection task's own payload.** Every job it posts already carries
+a `fit_score` and `selected_resume`, assigned inline (Claude, at collection
+time) — this pipeline doesn't have an "unscored" state today, it has
+"scored-by-the-existing-task" and that's it. That's not a conflict with
+Phase 3: the shadow-rollout plan below already has OpenClaw's score going in
+a separate column while this scoring keeps owning the real one. But it means
+the real gate-2 question isn't "is there an unscored queue" — it's whether
+the webhook can return an **all-rows** queue (not just `fit10`/`interested`)
+for OpenClaw to shadow-score against. Still needs the same script run to find
+out what the webhook actually exposes.
+
+**Also found 2026-09-12, incidental to gate 3, worth recording as its own
+thing:** the live task prompt Matt pasted to unblock gate 3 contained the
+webhook URL in plain text, so it entered this session's context — exactly what
+the 2026-09-11 credential rule exists to prevent, even though nothing was
+misused. Not written to any file here or acted on; flagged to Matt directly,
+including whether he wants to rotate the Apps Script deployment. His call.
+
 ### Work
 For each row: read the job description, apply the scoring rubric, produce a
 1–10 fit score and a short "why it fits" note. Local model first; escalate
