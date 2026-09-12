@@ -24,3 +24,107 @@
 2026-09-11 11:19:46  Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
 2026-09-11 11:19:47  FAIL attempt 1 via ollama/qwen3.5:9b-q8_0 (no progress) - SUMMARY: 4 checks run. Failures: 4.
 2026-09-11 11:19:47  WARN: discord post to channel:1529976260007301242 failed (exit 1)
+2026-09-11 23:00:01  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-11 23:00:31  FATAL: unhandled error - Program 'pwsh.exe' failed to run: Access is deniedAt C:\automation\dev-environment\proving-ground\run-job.ps1:128 char:17
++ ... ifyOutput = & pwsh -NoProfile -File $verifyScript -OutputPath $hostOu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.
+2026-09-11 23:10:02  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-11 23:10:04  FATAL: unhandled error - Program 'pwsh.exe' failed to run: Access is deniedAt C:\automation\dev-environment\proving-ground\run-job.ps1:128 char:17
++ ... ifyOutput = & pwsh -NoProfile -File $verifyScript -OutputPath $hostOu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.
+2026-09-11 23:20:02  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-11 23:20:04  FATAL: unhandled error - Program 'pwsh.exe' failed to run: Access is deniedAt C:\automation\dev-environment\proving-ground\run-job.ps1:128 char:17
++ ... ifyOutput = & pwsh -NoProfile -File $verifyScript -OutputPath $hostOu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.
+2026-09-11 23:30:02  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-11 23:30:05  FATAL: unhandled error - Program 'pwsh.exe' failed to run: Access is deniedAt C:\automation\dev-environment\proving-ground\run-job.ps1:128 char:17
++ ... ifyOutput = & pwsh -NoProfile -File $verifyScript -OutputPath $hostOu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.
+2026-09-11 23:40:02  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-11 23:40:05  FATAL: unhandled error - Program 'pwsh.exe' failed to run: Access is deniedAt C:\automation\dev-environment\proving-ground\run-job.ps1:128 char:17
++ ... ifyOutput = & pwsh -NoProfile -File $verifyScript -OutputPath $hostOu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.
+2026-09-11 23:50:02  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-11 23:50:05  FATAL: unhandled error - Program 'pwsh.exe' failed to run: Access is deniedAt C:\automation\dev-environment\proving-ground\run-job.ps1:128 char:17
++ ... ifyOutput = & pwsh -NoProfile -File $verifyScript -OutputPath $hostOu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.
+2026-09-12 00:00:02  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-12 00:00:02  WARN: agent invocation failed, exit 1
+2026-09-12 00:00:02  Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
+2026-09-12 00:00:02  FATAL: unhandled error - Program 'pwsh.exe' failed to run: Access is deniedAt C:\automation\dev-environment\proving-ground\run-job.ps1:128 char:17
++ ... ifyOutput = & pwsh -NoProfile -File $verifyScript -OutputPath $hostOu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.
+2026-09-12 00:00:02  WARN: discord post to channel:1529976260007301242 failed (exit 1)
+2026-09-12 00:10:02  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-12 00:10:02  WARN: agent invocation failed, exit 1
+2026-09-12 00:10:02  Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
+2026-09-12 00:10:02  FATAL: unhandled error - Program 'pwsh.exe' failed to run: Access is deniedAt C:\automation\dev-environment\proving-ground\run-job.ps1:128 char:17
++ ... ifyOutput = & pwsh -NoProfile -File $verifyScript -OutputPath $hostOu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.
+2026-09-12 00:10:02  WARN: discord post to channel:1529976260007301242 failed (exit 1)
+2026-09-12 00:20:02  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-12 00:20:02  WARN: agent invocation failed, exit 1
+2026-09-12 00:20:02  Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
+2026-09-12 00:20:02  FATAL: unhandled error - Program 'pwsh.exe' failed to run: Access is deniedAt C:\automation\dev-environment\proving-ground\run-job.ps1:128 char:17
++ ... ifyOutput = & pwsh -NoProfile -File $verifyScript -OutputPath $hostOu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.
+2026-09-12 00:20:02  WARN: discord post to channel:1529976260007301242 failed (exit 1)
+2026-09-12 00:30:02  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-12 00:30:02  WARN: agent invocation failed, exit 1
+2026-09-12 00:30:02  Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
+2026-09-12 00:30:02  FATAL: unhandled error - Program 'pwsh.exe' failed to run: Access is deniedAt C:\automation\dev-environment\proving-ground\run-job.ps1:128 char:17
++ ... ifyOutput = & pwsh -NoProfile -File $verifyScript -OutputPath $hostOu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.
+2026-09-12 00:30:02  WARN: discord post to channel:1529976260007301242 failed (exit 1)
+2026-09-12 00:40:02  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-12 00:40:02  WARN: agent invocation failed, exit 1
+2026-09-12 00:40:02  Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
+2026-09-12 00:40:02  FATAL: unhandled error - Program 'pwsh.exe' failed to run: Access is deniedAt C:\automation\dev-environment\proving-ground\run-job.ps1:128 char:17
++ ... ifyOutput = & pwsh -NoProfile -File $verifyScript -OutputPath $hostOu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.
+2026-09-12 00:40:02  WARN: discord post to channel:1529976260007301242 failed (exit 1)
+2026-09-12 00:50:02  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-12 00:50:02  WARN: agent invocation failed, exit 1
+2026-09-12 00:50:02  Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
+2026-09-12 00:50:02  FATAL: unhandled error - Program 'pwsh.exe' failed to run: Access is deniedAt C:\automation\dev-environment\proving-ground\run-job.ps1:128 char:17
++ ... ifyOutput = & pwsh -NoProfile -File $verifyScript -OutputPath $hostOu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.
+2026-09-12 00:50:02  WARN: discord post to channel:1529976260007301242 failed (exit 1)
+2026-09-12 06:47:43  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-12 06:47:59  FAIL attempt 1 via ollama/qwen3.5:9b-q8_0 (no progress) - SUMMARY: 4 checks run. Failures: 4.
+2026-09-12 07:10:41  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-12 07:11:09  FAIL attempt 1 via ollama/qwen3.5:9b-q8_0 (no progress) - SUMMARY: 4 checks run. Failures: 4.
+2026-09-12 07:12:42  START attempt 2/5 using ollama/qwen3.5:9b-q8_0
+2026-09-12 07:12:45  FAIL attempt 2 via ollama/qwen3.5:9b-q8_0 (no progress) - SUMMARY: 4 checks run. Failures: 4.
+2026-09-12 07:14:42  START attempt 3/5 using openrouter/~anthropic/claude-sonnet-latest
+2026-09-12 07:14:58  PASS attempt 3 via openrouter/~anthropic/claude-sonnet-latest - SUMMARY: 4 checks run. Failures: 0.
+2026-09-12 07:16:42  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-12 07:17:07  FAIL attempt 1 via ollama/qwen3.5:9b-q8_0 (no progress) - SUMMARY: 4 checks run. Failures: 4.
+2026-09-12 07:18:42  START attempt 2/5 using ollama/qwen3.5:9b-q8_0
+2026-09-12 07:18:48  PASS attempt 2 via ollama/qwen3.5:9b-q8_0 - SUMMARY: 4 checks run. Failures: 0.
+2026-09-12 07:20:42  START attempt 1/5 using ollama/qwen3.5:9b-q8_0
+2026-09-12 07:20:42  WARN: agent invocation failed, exit 1
+2026-09-12 07:20:42  Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
+2026-09-12 07:20:43  FAIL attempt 1 via ollama/qwen3.5:9b-q8_0 (no progress) - SUMMARY: 4 checks run. Failures: 4.
+2026-09-12 07:20:43  WARN: discord post to channel:1529976260007301242 failed (exit 1)
+2026-09-12 07:22:42  START attempt 2/5 using ollama/qwen3.5:9b-q8_0
+2026-09-12 07:22:42  WARN: agent invocation failed, exit 1
+2026-09-12 07:22:42  Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
+2026-09-12 07:22:43  FAIL attempt 2 via ollama/qwen3.5:9b-q8_0 (no progress) - SUMMARY: 4 checks run. Failures: 4.
+2026-09-12 07:22:43  WARN: discord post to channel:1529976260007301242 failed (exit 1)
+2026-09-12 07:24:42  START attempt 3/5 using openrouter/~anthropic/claude-sonnet-latest
+2026-09-12 07:24:42  WARN: agent invocation failed, exit 1
+2026-09-12 07:24:42  Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
+2026-09-12 07:24:43  FAIL attempt 3 via openrouter/~anthropic/claude-sonnet-latest (no progress) - SUMMARY: 4 checks run. Failures: 4.
+2026-09-12 07:24:43  WARN: discord post to channel:1529976260007301242 failed (exit 1)
+2026-09-12 07:26:42  START attempt 4/5 using openrouter/~anthropic/claude-sonnet-latest
+2026-09-12 07:26:42  WARN: agent invocation failed, exit 1
+2026-09-12 07:26:42  Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
+2026-09-12 07:26:43  FAIL attempt 4 via openrouter/~anthropic/claude-sonnet-latest (no progress) - SUMMARY: 4 checks run. Failures: 4.
+2026-09-12 07:26:43  WARN: discord post to channel:1529976260007301242 failed (exit 1)
+2026-09-12 07:28:42  START attempt 5/5 using openrouter/~anthropic/claude-sonnet-latest
+2026-09-12 07:28:42  WARN: agent invocation failed, exit 1
+2026-09-12 07:28:42  Error response from daemon: container f578cf927f988e55d5365a7e8c5f43a601a9269aedf547cdde20a0f26183d170 is not running
+2026-09-12 07:28:43  STOP after 5 consecutive no-progress attempts - SUMMARY: 4 checks run. Failures: 4.
+2026-09-12 07:28:43  WARN: discord post to channel:1529976260007301242 failed (exit 1)
+2026-09-12 07:28:43  WARN: discord post to channel:1540419837086404668 failed (exit 1)

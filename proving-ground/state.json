@@ -1,79 +1,87 @@
 {
-    "status":  "running",
-    "attempt":  0,
+    "status":  "stopped",
+    "attempt":  5,
     "requiredToken":  "[PG-OK]",
-    "totalCostUsd":  1.243552,
-    "stoppedAt":  null,
-    "stopReason":  null,
+    "totalCostUsd":  0.321558,
+    "stoppedAt":  "2026-09-12T07:28:43.1920486-05:00",
+    "stopReason":  "5 consecutive no-progress attempts. Last check: SUMMARY: 4 checks run. Failures: 4.",
     "history":  [
                     {
                         "attempt":  1,
-                        "timestamp":  "20260911-062412",
+                        "timestamp":  "20260912-071041",
                         "model":  "ollama/qwen3.5:9b-q8_0",
                         "result":  "fail",
-                        "costUsd":  0.0,
+                        "costUsd":  0,
                         "summary":  "SUMMARY: 4 checks run. Failures: 4."
                     },
                     {
                         "attempt":  2,
-                        "timestamp":  "20260911-062607",
+                        "timestamp":  "20260912-071242",
                         "model":  "ollama/qwen3.5:9b-q8_0",
+                        "result":  "fail",
+                        "costUsd":  0,
+                        "summary":  "SUMMARY: 4 checks run. Failures: 4."
+                    },
+                    {
+                        "attempt":  3,
+                        "timestamp":  "20260912-071442",
+                        "model":  "openrouter/~anthropic/claude-sonnet-latest",
                         "result":  "pass",
-                        "costUsd":  0.0,
+                        "costUsd":  0.321558,
                         "summary":  "SUMMARY: 4 checks run. Failures: 0."
                     },
                     {
                         "attempt":  1,
-                        "timestamp":  "20260911-062815",
+                        "timestamp":  "20260912-071642",
                         "model":  "ollama/qwen3.5:9b-q8_0",
                         "result":  "fail",
-                        "costUsd":  0.0,
-                        "summary":  "SUMMARY: 4 checks run. Failures: 1."
+                        "costUsd":  0,
+                        "summary":  "SUMMARY: 4 checks run. Failures: 4."
                     },
                     {
                         "attempt":  2,
-                        "timestamp":  "20260911-062835",
+                        "timestamp":  "20260912-071842",
                         "model":  "ollama/qwen3.5:9b-q8_0",
-                        "result":  "fail",
-                        "costUsd":  0.0,
-                        "summary":  "SUMMARY: 4 checks run. Failures: 1."
-                    },
-                    {
-                        "attempt":  3,
-                        "timestamp":  "20260911-062901",
-                        "model":  "openrouter/~anthropic/claude-sonnet-latest",
-                        "result":  "fail",
-                        "costUsd":  0.305836,
-                        "summary":  "SUMMARY: 4 checks run. Failures: 1."
-                    },
-                    {
-                        "attempt":  4,
-                        "timestamp":  "20260911-062928",
-                        "model":  "openrouter/~anthropic/claude-sonnet-latest",
-                        "result":  "fail",
-                        "costUsd":  0.309204,
-                        "summary":  "SUMMARY: 4 checks run. Failures: 1."
-                    },
-                    {
-                        "attempt":  5,
-                        "timestamp":  "20260911-062951",
-                        "model":  "openrouter/~anthropic/claude-sonnet-latest",
-                        "result":  "fail",
-                        "costUsd":  0.312572,
-                        "summary":  "SUMMARY: 4 checks run. Failures: 1."
-                    },
-                    {
-                        "attempt":  3,
-                        "timestamp":  "20260911-093340",
-                        "model":  "openrouter/~anthropic/claude-sonnet-latest",
-                        "result":  "fail",
-                        "costUsd":  0.31594,
-                        "summary":  "SUMMARY: 4 checks run. Failures: 1."
+                        "result":  "pass",
+                        "costUsd":  0,
+                        "summary":  "SUMMARY: 4 checks run. Failures: 0."
                     },
                     {
                         "attempt":  1,
-                        "timestamp":  "20260911-111946",
+                        "timestamp":  "20260912-072042",
                         "model":  "ollama/qwen3.5:9b-q8_0",
+                        "result":  "fail",
+                        "costUsd":  0,
+                        "summary":  "SUMMARY: 4 checks run. Failures: 4."
+                    },
+                    {
+                        "attempt":  2,
+                        "timestamp":  "20260912-072242",
+                        "model":  "ollama/qwen3.5:9b-q8_0",
+                        "result":  "fail",
+                        "costUsd":  0,
+                        "summary":  "SUMMARY: 4 checks run. Failures: 4."
+                    },
+                    {
+                        "attempt":  3,
+                        "timestamp":  "20260912-072442",
+                        "model":  "openrouter/~anthropic/claude-sonnet-latest",
+                        "result":  "fail",
+                        "costUsd":  0,
+                        "summary":  "SUMMARY: 4 checks run. Failures: 4."
+                    },
+                    {
+                        "attempt":  4,
+                        "timestamp":  "20260912-072642",
+                        "model":  "openrouter/~anthropic/claude-sonnet-latest",
+                        "result":  "fail",
+                        "costUsd":  0,
+                        "summary":  "SUMMARY: 4 checks run. Failures: 4."
+                    },
+                    {
+                        "attempt":  5,
+                        "timestamp":  "20260912-072842",
+                        "model":  "openrouter/~anthropic/claude-sonnet-latest",
                         "result":  "fail",
                         "costUsd":  0,
                         "summary":  "SUMMARY: 4 checks run. Failures: 4."
