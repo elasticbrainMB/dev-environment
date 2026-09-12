@@ -353,6 +353,69 @@ Same standard as Phase 2 — real evidence, not a self-report:
 3. Confirm the stop-rule no-restart behaviour survives a *real* scheduled
    tick, not just the hand-run one Phase 2 tested.
 
+### B4a. Night one — 2026-09-11 into 2026-09-12. Read this before retrying.
+
+**The job failed every tick. The safety net worked perfectly. Both matter, and
+the second one is the bigger result.**
+
+What happened: from 23:00 to 00:50, every ten-minute tick started and
+immediately crashed with `pwsh.exe ... Access is denied`. No pass, no fail,
+no attempt counter, no stop rule, no skip. A brand-new bug nobody had
+predicted, unrelated to anything being tested.
+
+What did **not** happen: silence. Two independent channels reported it,
+starting at 23:00 — `FATAL` messages in `#alerts` while the container was
+still up, and `FATAL` messages in `#decisions` over infra-watch's host-side
+webhook throughout. When the job stopped ticking entirely at 00:50, the
+staleness check began posting `SILENT` at 01:15 and kept going every ten
+minutes until 01:55.
+
+**That is the proof point, and it is stronger than the one that was
+designed.** The dead-man's check was built for a hypothetical: what if the
+job fails to start and nobody knows. On its first unattended night it caught a
+*real*, *unforeseen* failure, one nobody had thought to plant. Before
+2026-09-11's work, this night would have produced nothing at all and looked
+exactly like success at 05:15.
+
+So: the timer fired unattended and on schedule all night — that half of B4.1
+is proven. The job's own pass/fail/stop behaviour is still unproven. The
+reporting layer is proven harder than planned.
+
+**The cause.** `run-job.ps1` calls `pwsh` to run the check script. On this
+machine `pwsh` is a Microsoft Store app-execution-alias stub, not a real
+program. Those stubs only resolve inside an interactive desktop session; a
+scheduled task using S4U logon has no such session and gets "Access is
+denied". It works by hand and fails on a timer, every time, regardless of
+anything else. Fix: don't call `pwsh`. Use `powershell.exe`, which is the 5.1
+that is genuinely installed and genuinely reachable from a scheduled task, or
+resolve a real interpreter path explicitly.
+
+### B4b. The rule this cost a night to learn
+
+Three bugs in two days, all the same shape: **the environment a scheduled task
+runs in is not the environment your shell runs in.** Different error handling
+(the stderr trap under `'Stop'`), different account, no interactive desktop,
+different program resolution. Each one was invisible until something actually
+ran in the real environment.
+
+The dry run on 2026-09-11 was right to do and caught a real bug — but it ran
+*by hand*, so it could not have caught this one.
+
+**So, before any job is trusted to run unattended: run it once through the
+scheduler itself.** Register a one-off task a couple of minutes out, let it
+fire, read the log. That is the only test that exercises the real environment,
+it takes five minutes, and it would have caught this before it cost a night.
+Running it by hand proves the logic; running it on a timer proves it can run
+at all. Both are required and they are not substitutes.
+
+**Corollary on iteration speed.** A full proof sequence at ten-minute ticks
+takes three hours, so each attempt costs a night. Nothing about the property
+being proven requires darkness — it requires that nobody intervenes. Compress
+the ticks (two minutes) and the whole sequence runs in under half an hour,
+while Matt is awake and can start the next attempt the same morning. Do a
+single real overnight run at the end as final confirmation, not as the
+iteration loop.
+
 ### B5. Then tear down the proving ground
 
 Once all three are observed: the proving ground has done its job. Delete the
