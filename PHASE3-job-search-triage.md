@@ -249,6 +249,81 @@ The deeper habit worth keeping: **a failure path that has never been run is
 not a failure path.** The passing case had been exercised eight times; the
 container-down case had never been run once, and it was broken.
 
+### Open risk, quantified 2026-09-12: the local model's first-try reliability
+
+The proving ground's task is about as easy as a model task gets: read one
+sentence, write a one-line summary under 22 words with a fixed literal token
+at the end. Every clean, infra-unaffected first attempt on record — three of
+them, across two days and two different machine states — **failed**. Zero
+passes on a first try, out of three. The only pass anywhere in the log
+happened on a second attempt, after the state had already recorded one
+failure. Counting every clean local-model attempt regardless of try number
+(both attempt 1 and attempt 2 use the local model), that's 1 pass in 5 clean
+attempts — 20% — and even that one pass required a retry.
+
+Sample size is small; three is not a confident estimate of a true rate.
+But it is not "roughly 50%, worth a footnote" — it is 0% on the first try in
+every clean instance observed, on the easiest possible task. Fit-scoring a
+real job posting is a harder task than summarizing one sentence, so there is
+no reason to expect this number to improve for Phase 3's actual work, and
+some reason to expect it to be worse.
+
+This bears directly on Phase 3's design, not just its risk log:
+
+- **The escalation policy already assumes some first-try failure** ("two
+  local attempts, escalate") but was not sized against a first-try rate this
+  low. At roughly a 1-in-5 chance of the *second* local attempt also failing
+  (see the 06:28 sequence in `proving-ground\run-log.txt`, where attempt 2
+  failed too), a meaningful fraction of rows will escalate to the paid model
+  just to get a valid response shape at all — before the shadow-scoring
+  comparison in the rollout plan above even gets to judge whether the score
+  itself was good. That's spend the $5/week cap needs to absorb, not just
+  the deliberate hard-stop failures Phase 2 sized it against.
+- **Before the shadow period starts, measure this specific number on the
+  real scoring task**, not just infer it from the proving ground: how often
+  does the local model produce a validly-shaped response (right format, a
+  1–10 score, non-empty rationale) on the first attempt, across a real batch
+  of job rows. If it's anywhere near what the proving ground showed, either
+  the model, the prompt, or the local-first policy for this specific job
+  needs to change before Phase 3 goes live — not after a week of shadow data
+  quietly burns budget on retries.
+
+**Update, 2026-09-12 — a second, contradicting measurement, recorded as-is.**
+Diagnosed the failure directly rather than guessing: called the local model
+11 times outside `run-job.ps1`, same container, same agent, same task, and
+inspected each raw response. Plumbing is fully ruled out — 9 of the 11 wrote
+a correct file at the correct path on the first call, the write tool never
+failed when the model actually invoked it, and neither failure left a stray
+file anywhere on the container's filesystem. Both failures were the model
+itself stopping early: one call read the input file and then never called
+`write`; the other made no tool calls at all and stopped after one turn. So
+the mechanism is confirmed — this is the model quitting a two-step task
+partway through, not a path or permissions problem.
+
+That gives 9-of-11 (82%) in this direct session, against 0-of-3 to 1-of-6
+seen via the actual scheduled runs in `proving-ground\run-log.txt`. Both
+numbers are real; they disagree, and nothing so far explains the gap — same
+container, same session, no obvious environmental difference between the two
+sets of calls. Recorded rather than reconciled: **Matt's call is that eleven
+runs of a throwaway task isn't grounds for reopening the settled model
+policy**, so this stays a Phase 3 risk to watch, not an action taken. Whoever
+picks this up before or during the shadow period should treat both numbers as
+real, take neither as the true rate, and get a larger sample on the actual
+scoring task before drawing a conclusion.
+
+## Guardrails, set 2026-09-12
+
+Two limits Matt set before any building starts, both standing until he says
+otherwise:
+
+- **Shadow-period runs are capped at ~10 rows each.** Don't score a full
+  backlog to gather comparison data — a small batch per run, repeated, not
+  one large one.
+- **Nothing gets written to the Job Tracker — the real Fit Score column or
+  the shadow column — until Matt confirms he's backed it up.** He'll say when
+  it's clear. Until then, every part of this phase that reads the tracker is
+  fine; anything that writes to it waits.
+
 ## Gates before any building starts
 
 1. Phase 2's close-out is done — spend cap live and verified, timer proven,
