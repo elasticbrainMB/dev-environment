@@ -17,16 +17,26 @@
 #
 # Teardown (B5) is deliberately NOT scheduled here - Matt reviews the
 # evidence first; see PHASE2-CLOSEOUT-timer-and-spendcap.md.
+#
+# Defaults below are the COMPRESSED same-day sequence (B4b's corollary):
+# 2-minute ticks, whole thing runs in ~27 minutes, so Matt can watch it and
+# iterate same-day instead of burning one attempt per night. Pass phase is
+# 5 ticks, not 2-3 - the local model's first-try success rate measured at
+# 0-in-3 clean attempts (see PHASE3-job-search-triage.md), so the proof
+# needs room for at least one pass, not a pass on the first tick. A single
+# real overnight run at 10-minute ticks is still the final confirmation once
+# this passes compressed - pass -RepeatMinutes 10 and explicit overnight
+# clock times for that run rather than relying on these defaults.
 
 param(
-  [datetime]$RunJobStart = (Get-Date -Hour 23 -Minute 0 -Second 0),
-  [datetime]$HeartbeatStart = (Get-Date -Hour 23 -Minute 5 -Second 0),
-  [datetime]$BreakContainerAt = (Get-Date -Hour 23 -Minute 52 -Second 0),
-  [datetime]$RestoreContainerAt = (Get-Date -Hour 1 -Minute 0 -Second 0).AddDays(1),
-  [int]$RepeatMinutes = 10,
-  [int]$RunJobDurationHours = 2,
-  [int]$HeartbeatDurationHours = 3,
-  [int]$HeartbeatMaxAgeMinutes = 15
+  [datetime]$RunJobStart = (Get-Date).AddMinutes(3),
+  [datetime]$HeartbeatStart = $RunJobStart.AddMinutes(1),
+  [datetime]$BreakContainerAt = $RunJobStart.AddMinutes(9),
+  [datetime]$RestoreContainerAt = $RunJobStart.AddMinutes(21),
+  [int]$RepeatMinutes = 2,
+  [double]$RunJobDurationMinutes = 20,
+  [double]$HeartbeatDurationMinutes = 26,
+  [int]$HeartbeatMaxAgeMinutes = 3
 )
 
 $ErrorActionPreference = 'Stop'
@@ -120,11 +130,11 @@ function Register-OneTimeCommandTask {
 
 Register-ProvingGroundTask -TaskName 'proving-ground-run-job' `
   -ScriptPath (Join-Path $root 'run-job.ps1') -Arguments '' `
-  -StartTime $RunJobStart -Duration (New-TimeSpan -Hours $RunJobDurationHours)
+  -StartTime $RunJobStart -Duration (New-TimeSpan -Minutes $RunJobDurationMinutes)
 
 Register-ProvingGroundTask -TaskName 'proving-ground-heartbeat-check' `
   -ScriptPath (Join-Path $root 'check-heartbeat.ps1') -Arguments "-MaxAgeMinutes $HeartbeatMaxAgeMinutes" `
-  -StartTime $HeartbeatStart -Duration (New-TimeSpan -Hours $HeartbeatDurationHours)
+  -StartTime $HeartbeatStart -Duration (New-TimeSpan -Minutes $HeartbeatDurationMinutes)
 
 Register-OneTimeCommandTask -TaskName 'proving-ground-break-container' `
   -Command 'docker stop openclaw' -At $BreakContainerAt

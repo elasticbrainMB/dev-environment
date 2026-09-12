@@ -125,7 +125,7 @@ $ErrorActionPreference = 'Continue'
 & docker exec $container sh -lc "cat $containerWsDir/$outputRel 2>/dev/null" 2>$null | Set-Content -Path $hostOutputPath -Encoding utf8 -NoNewline
 $ErrorActionPreference = $prevEap
 
-$verifyOutput = & pwsh -NoProfile -File $verifyScript -OutputPath $hostOutputPath -RequiredToken $state.requiredToken -MaxWords $maxWords 2>&1
+$verifyOutput = & powershell.exe -NoProfile -File $verifyScript -OutputPath $hostOutputPath -RequiredToken $state.requiredToken -MaxWords $maxWords 2>&1
 $verifyExit = $LASTEXITCODE
 $pass = ($agentOk -and $verifyExit -eq 0)
 $summaryLine = ($verifyOutput | Select-String '^SUMMARY:').ToString()
