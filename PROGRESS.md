@@ -220,3 +220,29 @@ shape.
 
 **What's next:** waiting on Matt to run the updated script and report back
 what it shows.
+
+---
+
+## 2026-09-13 — gate 2 answered: all four gates now checked
+
+Matt ran the fixed script. Real answer this time:
+`{status: "ok", queue: {fit10: [81 rows], interested: [4 rows]}}`.
+
+**The original PHASE3 doc's guess turns out to have been right — there is no
+all-rows or unscored queue.** Just the two curated ones. That closes gate 2,
+but it isn't good news on its own: the Rollout plan ("compare for at least a
+week of real rows") needs rows spanning the score range to mean anything.
+Scoring the 81 rows that already got a 10 and the 4 marked interested
+wouldn't show whether OpenClaw would catch a 7 that should've been a 4 — it
+would only show whether it agrees with rows everyone already agrees on.
+
+Wrote this into `PHASE3-job-search-triage.md` and `STATE.md` as a real open
+item, not folded quietly into "gate 2: done." Two ways forward, both needing
+a small Apps Script change that's Matt's to make (no tool access to that
+editor from here — a plain access limit, not a credential-rule block):
+add a genuine all-rows/unscored report type, or accept a narrower shadow
+scope limited to what's actually available. Left the decision to Matt rather
+than picking one, since it changes what the shadow period can prove.
+
+**All four of Phase 3's opening gates are now checked.** Nothing left before
+building can start except the rows-to-shadow-score decision above.

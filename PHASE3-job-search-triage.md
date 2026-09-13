@@ -118,6 +118,31 @@ the webhook can return an **all-rows** queue (not just `fit10`/`interested`)
 for OpenClaw to shadow-score against. Still needs the same script run to find
 out what the webhook actually exposes.
 
+**2026-09-13 — answered, and the original doc's guess was right: there is no
+all-rows queue.** `check-webhook-queues.ps1`'s actual output:
+`{status: "ok", queue: {fit10: [81 rows], interested: [4 rows]}}`. Two
+curated queues, nothing broader. No unscored queue, no all-rows queue — the
+webhook genuinely has no way today to hand OpenClaw a general sample of
+collected rows to shadow-score against.
+
+**This blocks the shadow rollout as designed below, not just this gate.**
+"Compare for at least a week of real rows" (the Rollout section) needs rows
+spanning the score range, not just the 81 that already got a 10 and the 4
+marked interested — scoring 81 already-agreed 10s tells you nothing about
+whether OpenClaw would have caught a 7 that should've been a 4. Two ways
+forward, both requiring a small Apps Script change — which is Matt's to make
+(no tool access to that editor from here, same kind of access limit as the
+Cowork sidebar and Task Scheduler, not a credential-rule block this time):
+- Add a genuine all-rows (or unscored-by-OpenClaw) report type, as the
+  original gate note already anticipated as "a small change and belongs to
+  this phase," or
+- Narrow the shadow period's scope to what's actually available (`fit10` and
+  `interested` only) and accept that as a smaller, biased-toward-agreement
+  first pass rather than the broad comparison the Rollout section describes.
+
+Not decided here — Matt's call, since it changes what the shadow period can
+actually prove.
+
 **Also found 2026-09-12, incidental to gate 3, worth recording as its own
 thing:** the live task prompt Matt pasted to unblock gate 3 contained the
 webhook URL in plain text, so it entered this session's context — exactly what
@@ -363,17 +388,21 @@ otherwise:
 
 1. **Done, 2026-09-12.** Phase 2's close-out is done — spend cap live and
    verified, timer proven, dead-man's check in place. See `STATE.md`.
-2. **Blocked on Matt, 2026-09-12.** The webhook's unscored-row question isn't
-   answered yet — see the note under Input above. `check-webhook-queues.ps1`
-   is ready for him to run.
-3. **Blocked on Matt, 2026-09-12.** The scoring rubric isn't written down yet
-   — see the note under Work above. `scoring-rubric.md` is a stub waiting on
-   the live Cowork prompt text.
+2. **Answered, 2026-09-13 — and it's a "no."** The webhook exposes exactly
+   two queues, `fit10` (81 rows) and `interested` (4 rows), nothing broader —
+   see the note under Input above. That doesn't just close the gate, it opens
+   a new one: the shadow rollout needs a way to sample rows across the score
+   range, which doesn't exist yet. Matt's call on how to close that.
+3. **Done, 2026-09-12.** The scoring rubric is extracted verbatim in
+   `scoring-rubric.md` from the live Cowork prompt Matt pasted — see the note
+   under Work above.
 4. **Done, 2026-09-12.** `script.google.com` answers from inside the OpenClaw
    container — `HTTP 302` in ~0.2s on a plain `curl`, no block, nothing like
    Cowork's sandbox restriction. Domain-level reachability only; the actual
-   webhook round-trip is gate 2's job once it's answered.
+   webhook round-trip is confirmed working by gate 2's answer above.
 
-Turned out two of the four need something only Matt has (a webhook URL, and
-Cowork's own UI) — not a correction to "none of these need Matt," just where
-this particular pair landed.
+**All four checked as of 2026-09-13.** Two needed something only Matt has (a
+webhook URL, Cowork's own UI) — not a correction to "none of these need
+Matt," just where this pair landed. Gate 2's answer creates one more thing to
+resolve before building starts for real: the shadow rollout has no source of
+rows outside the two curated queues yet. See the 2026-09-13 note under Input.
