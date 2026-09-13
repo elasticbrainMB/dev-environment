@@ -185,3 +185,38 @@ can return an all-rows queue, not an unscored one. Still needs Matt to run
 `check-webhook-queues.ps1`.
 
 **Gate status: 3 of 4 done.** Only the webhook queue check remains.
+
+---
+
+## 2026-09-13 — webhook check script was too shallow, fixed before it leaked anything
+
+Matt ran `check-webhook-queues.ps1` and got back `status : (not a list)` and
+`queue : (not a list)` — not useful, and not obviously wrong either, so
+worth digging into rather than asking him to just try again.
+
+Root cause: the script only ever looked one level deep, and it labeled
+*anything* that wasn't a top-level array as "(not a list)" — including a
+perfectly normal string like `status: "ok"`. `queue` not being a top-level
+array is real information (the response is wrapped, or nested, or something
+else), but the script had no way to show what it actually was.
+
+**Decided on my own:** rewrote it to walk one level deeper and describe what
+it finds — array counts, an object's own key names, and (top level only) a
+bare scalar's actual value. Tested the new logic against three mock response
+shapes before handing it back to Matt for a third round: nested named
+queues, a single collapsed row object, and a null queue.
+
+**Caught a real bug in my own fix via that test, before Matt ever saw it:**
+the first version of the deeper walk printed a nested object's scalar
+children too — which is exactly what would happen if `queue` turns out to be
+a single job row (`{row, company, title}`) instead of a group of lists. That
+would have printed the company and title straight to Matt's terminal,
+breaking the "never row data" promise the whole point of this script rests
+on. Fixed before it ever ran for real: past the top level, a scalar's value
+is hidden and only its name and type print. Caught by testing against mock
+data, not by inspecting the code by eye — worth remembering as a general
+practice for anything that walks an unknown, possibly-sensitive response
+shape.
+
+**What's next:** waiting on Matt to run the updated script and report back
+what it shows.
